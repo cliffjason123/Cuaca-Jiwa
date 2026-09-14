@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F4F1EA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cuaca Jiwa">
+<title>Cuaca Jiwa — V0.4</title>
+<style>
+:root{
+  --ink:#24312d;--muted:#687670;--line:rgba(36,49,45,.10);--paper:rgba(255,255,255,.62);
+  --paper-strong:rgba(255,255,255,.84);--accent:#556f65;--accent-soft:#dfe9e3;
+  --bg1:#f7f3eb;--bg2:#e9f0eb;--glow1:rgba(236,207,130,.38);--glow2:rgba(156,188,175,.28);
+  --ease:cubic-bezier(.22,.8,.22,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#f4f1ea;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif}
+body{overflow-x:hidden}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:active{transform:scale(.985)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid rgba(60,99,83,.34);outline-offset:3px}
+body[data-weather="sunny"]{--bg1:#faf4e6;--bg2:#edf3ec;--glow1:rgba(246,201,91,.46);--glow2:rgba(175,205,182,.28);--accent:#61765d}
+body[data-weather="okay"]{--bg1:#f5f3ec;--bg2:#eaf1ed;--glow1:rgba(218,207,166,.30);--glow2:rgba(152,187,174,.25);--accent:#5e746b}
+body[data-weather="cloudy"]{--bg1:#f2f2ee;--bg2:#e6ece9;--glow1:rgba(183,190,185,.28);--glow2:rgba(145,169,161,.24);--accent:#63736e}
+body[data-weather="rainy"]{--bg1:#eef2f2;--bg2:#dfe9eb;--glow1:rgba(148,174,183,.30);--glow2:rgba(112,151,157,.25);--accent:#55727a}
+body[data-weather="stormy"]{--bg1:#ecefee;--bg2:#dde2e5;--glow1:rgba(128,143,151,.26);--glow2:rgba(91,116,126,.22);--accent:#536872}
+.ambient{position:fixed;inset:0;z-index:-2;background:linear-gradient(160deg,var(--bg1),var(--bg2));transition:background 700ms var(--ease)}
+.ambient:before,.ambient:after{content:"";position:absolute;border-radius:50%;filter:blur(4px);pointer-events:none;transition:all 800ms var(--ease)}
+.ambient:before{width:420px;height:420px;right:-160px;top:-130px;background:radial-gradient(circle,var(--glow1),transparent 70%);animation:driftA 13s ease-in-out infinite alternate}
+.ambient:after{width:500px;height:500px;left:-230px;bottom:-220px;background:radial-gradient(circle,var(--glow2),transparent 70%);animation:driftB 15s ease-in-out infinite alternate}
+@keyframes driftA{to{transform:translate(-22px,26px) scale(1.06)}}
+@keyframes driftB{to{transform:translate(28px,-24px) scale(.96)}}
+.shell{min-height:100dvh;width:100%;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:calc(15px + env(safe-area-inset-top)) 20px 12px;background:linear-gradient(to bottom,rgba(247,245,239,.78),rgba(247,245,239,.38),transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:750;letter-spacing:-.03em;font-size:18px}.mark{width:27px;height:27px;border-radius:50%;position:relative;background:linear-gradient(145deg,#ead691,#bfd5ca);box-shadow:inset -8px -6px 14px rgba(70,95,84,.08)}.mark:after{content:"";position:absolute;width:22px;height:9px;border-radius:999px;background:rgba(255,255,255,.8);left:9px;top:11px;box-shadow:-11px 4px 0 rgba(224,232,227,.95)}
+.top-actions{display:flex;align-items:center;gap:7px}.icon-btn,.lang-btn{border:1px solid rgba(36,49,45,.08);background:rgba(255,255,255,.42);backdrop-filter:blur(12px);border-radius:999px;min-height:38px;padding:0 13px;font-weight:650;color:#52625c}.icon-btn{display:flex;align-items:center;gap:7px}.lang-btn{font-size:12px;min-width:43px}
+.progress-wrap{height:2px;margin:0 20px;background:rgba(36,49,45,.05);border-radius:99px;overflow:hidden;opacity:0;transition:opacity .25s ease}.progress-wrap.show{opacity:1}.progress{height:100%;background:var(--accent);width:0%;transition:width 360ms var(--ease)}
+main{flex:1;width:min(100%,720px);margin:0 auto;padding:0 20px 110px}
+.screen{display:none;min-height:calc(100dvh - 100px);padding:34px 0 40px}.screen.active{display:block}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:750;color:#82908a;margin-bottom:13px}
+h1,h2,h3{margin:0;letter-spacing:-.045em}h1{font-size:clamp(38px,8vw,55px);line-height:1.01;font-weight:730;max-width:620px}h2{font-size:clamp(30px,6vw,42px);line-height:1.08;font-weight:700;max-width:620px}h3{font-size:20px;line-height:1.2;font-weight:700}p{margin:0;color:var(--muted);line-height:1.58}.lede{font-size:17px;margin-top:14px;max-width:560px}.micro{font-size:12.5px;color:#7d8984;line-height:1.5}.spacer{height:24px}
+.hero-sky{height:185px;position:relative;margin:20px -20px 12px;overflow:hidden;display:flex;align-items:center;justify-content:center}.sky-orb{width:116px;height:116px;border-radius:50%;background:radial-gradient(circle at 34% 27%,rgba(255,255,255,.95),rgba(228,217,177,.76) 42%,rgba(170,198,188,.56));box-shadow:0 22px 70px rgba(82,112,101,.16),inset -18px -16px 28px rgba(74,100,90,.06);position:relative;transition:all .7s var(--ease);animation:float 5.5s ease-in-out infinite}.sky-orb:after{content:"";position:absolute;width:75px;height:26px;border-radius:999px;background:rgba(247,249,246,.84);left:56px;top:53px;box-shadow:-39px 11px 0 rgba(223,232,227,.92);filter:drop-shadow(0 8px 14px rgba(59,79,72,.06))}@keyframes float{50%{transform:translateY(-7px)}}
+.weather-row{display:grid;grid-template-columns:repeat(5,minmax(64px,1fr));gap:8px;margin:24px 0 14px}.weather{border:1px solid rgba(36,49,45,.09);background:rgba(255,255,255,.52);backdrop-filter:blur(12px);border-radius:20px;min-height:102px;padding:12px 5px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;transition:transform .2s var(--ease),background .35s ease,border .35s ease,box-shadow .35s ease}.weather:hover{transform:translateY(-2px)}.weather.selected{background:rgba(255,255,255,.83);border-color:rgba(58,92,78,.20);box-shadow:0 12px 35px rgba(52,75,67,.10);transform:translateY(-3px)}.wicon{width:36px;height:36px}.weather span{font-size:12px;font-weight:690;color:#56655f;line-height:1.1;text-align:center}
+.quick-help{margin-top:22px;width:100%;border:0;background:rgba(36,49,45,.90);color:#fff;border-radius:20px;padding:16px 18px;font-weight:720;display:flex;justify-content:space-between;align-items:center;box-shadow:0 12px 34px rgba(36,49,45,.12)}.quick-help strong,.quick-help small{display:block}.quick-help small{font-weight:500;opacity:.67;margin-top:3px}.arrow{font-size:20px;opacity:.8}
+.journey{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:2px 0 26px;min-height:29px}.crumb{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(36,49,45,.07);background:rgba(255,255,255,.36);border-radius:999px;padding:7px 10px;font-size:12px;color:#62716b}.crumb strong{font-weight:720;color:#3f504a}.dot{opacity:.45}
+.back{border:0;background:transparent;padding:5px 0;margin-bottom:22px;color:#687770;font-weight:650;display:inline-flex;align-items:center;gap:7px}.back:active{transform:translateX(-2px)}
+.options{display:grid;gap:10px;margin-top:28px}.option{width:100%;border:1px solid rgba(36,49,45,.09);background:rgba(255,255,255,.52);backdrop-filter:blur(12px);border-radius:20px;padding:17px 18px;text-align:left;transition:all .22s var(--ease);display:flex;align-items:center;justify-content:space-between;gap:14px}.option:hover{background:rgba(255,255,255,.72)}.option.selected{background:rgba(255,255,255,.88);border-color:rgba(57,94,78,.22);box-shadow:0 10px 30px rgba(58,80,71,.07)}.option strong{font-size:16px;display:block;font-weight:690}.option small{display:block;margin-top:4px;color:var(--muted);font-size:13px;line-height:1.4}.checkmark{width:25px;height:25px;border-radius:50%;border:1px solid rgba(36,49,45,.13);display:grid;place-items:center;flex:0 0 auto;transition:.22s var(--ease)}.option.selected .checkmark{background:var(--accent);color:white;border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}.chip{border:1px solid rgba(36,49,45,.09);background:rgba(255,255,255,.48);border-radius:999px;padding:12px 15px;font-weight:650;color:#465750;transition:all .2s var(--ease)}.chip.selected{background:#283630;color:#fff;border-color:#283630;box-shadow:0 8px 20px rgba(36,49,45,.10)}
+.sticky-action{position:sticky;bottom:18px;margin-top:30px;padding-top:14px;background:linear-gradient(to bottom,transparent,rgba(237,242,238,.62) 30%,rgba(237,242,238,.86));z-index:5}.primary,.secondary,.text-btn{border:0;border-radius:18px;min-height:54px;padding:0 18px;font-weight:720}.primary{width:100%;background:#26342f;color:#fff;box-shadow:0 12px 28px rgba(36,49,45,.13)}.primary:disabled{opacity:.32;box-shadow:none}.secondary{width:100%;background:rgba(255,255,255,.70);border:1px solid rgba(36,49,45,.08);color:#35463f}.text-btn{width:100%;background:transparent;color:#61716a;min-height:46px}
+.intervention-shell{margin-top:26px;border:1px solid rgba(36,49,45,.08);background:rgba(255,255,255,.52);backdrop-filter:blur(18px);border-radius:30px;padding:24px;box-shadow:0 20px 65px rgba(45,65,57,.08)}
+.regulation{min-height:460px;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center}.regulation .intervention-shell{width:100%;background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0}.reg-orb{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;margin:28px auto;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.96),rgba(184,209,198,.76));box-shadow:0 28px 85px rgba(67,104,91,.15);transition:transform 4s ease-in-out,box-shadow 4s ease-in-out}.reg-orb.inhale{transform:scale(1.12);box-shadow:0 32px 95px rgba(67,104,91,.20)}.reg-orb.hold{transform:scale(1.12)}.reg-orb.exhale{transform:scale(.86);transition-duration:6s}.reg-orb span{font-size:18px;font-weight:700;color:#4c665d}.timer{font-size:13px;color:#778680;margin-top:5px;font-variant-numeric:tabular-nums}.quiet-nav .topbar,.quiet-nav .progress-wrap{opacity:.20;pointer-events:none;transition:opacity .35s ease}
+.triad{display:grid;gap:12px;margin-top:24px}.field{padding:16px;border:1px solid rgba(36,49,45,.08);background:rgba(255,255,255,.58);border-radius:20px}.field label{font-weight:700;font-size:14px;display:block;margin-bottom:8px}.field textarea,.field input{width:100%;border:0;background:transparent;outline:none;resize:none;min-height:60px;line-height:1.45}.field input{min-height:36px}.field .micro{margin-top:7px}
+.connection-card{margin-top:22px;padding:20px;border-radius:22px;background:rgba(255,255,255,.56);border:1px solid rgba(36,49,45,.08)}.message-preview{margin-top:14px;padding:15px 16px;border-radius:17px;background:rgba(228,237,232,.70);color:#41534c;line-height:1.5;font-size:14px}.copy-btn{margin-top:12px;border:0;background:transparent;color:var(--accent);font-weight:720;padding:8px 0}
+.savour{height:210px;display:grid;place-items:center;text-align:center;margin:20px 0}.savour-orb{width:138px;height:138px;border-radius:50%;background:radial-gradient(circle at 32% 25%,#fffef8,#efd993 48%,#c6d9cf);box-shadow:0 25px 75px rgba(113,101,58,.13);animation:savour 4s ease-in-out infinite alternate}@keyframes savour{to{transform:scale(1.06);filter:brightness(1.03)}}
+.result-card{margin-top:28px;padding:21px;border-radius:24px;background:rgba(255,255,255,.56);border:1px solid rgba(36,49,45,.08)}.result-card strong{display:block;font-size:18px;margin-bottom:7px}.outcome-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:25px}.outcome-grid button{border:1px solid rgba(36,49,45,.08);background:rgba(255,255,255,.56);border-radius:19px;padding:16px 12px;font-weight:680;text-align:left}.outcome-grid button:last-child{grid-column:1/-1}
+.finish-center{min-height:65dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.finish-symbol{width:88px;height:88px;border-radius:50%;background:linear-gradient(145deg,#f1dd9e,#c9dbd2);position:relative;margin-bottom:25px;box-shadow:0 24px 70px rgba(76,105,93,.12)}.finish-symbol:after{content:"";position:absolute;width:47px;height:18px;border-radius:999px;background:rgba(255,255,255,.86);left:32px;top:34px;box-shadow:-25px 7px 0 rgba(227,235,231,.96)}
+.history-strip{display:flex;gap:9px;overflow-x:auto;padding:20px 2px 10px;scrollbar-width:none}.history-strip::-webkit-scrollbar{display:none}.weather-dot{width:54px;height:54px;min-width:54px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.52);border:1px solid rgba(36,49,45,.07)}.weather-dot svg{width:27px;height:27px}.history-list{margin-top:22px}.history-item{padding:16px 0;border-bottom:1px solid rgba(36,49,45,.07);display:flex;justify-content:space-between;gap:20px}.history-item strong{font-size:14px}.history-item span{font-size:13px;color:var(--muted);text-align:right}
+.notice{margin-top:22px;padding:17px 18px;border-radius:20px;background:rgba(249,238,219,.72);border:1px solid rgba(156,115,63,.14);color:#685944;font-size:13px;line-height:1.55}.resource{display:block;text-decoration:none;color:inherit;margin-top:12px;padding:17px 18px;border-radius:20px;background:rgba(255,255,255,.55);border:1px solid rgba(36,49,45,.08)}.resource strong{display:block;margin-bottom:4px}.resource span{font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#26342f;color:white;padding:11px 15px;border-radius:999px;font-size:13px;font-weight:650;opacity:0;pointer-events:none;transition:.25s var(--ease);z-index:100}.toast.show{opacity:1;transform:translate(-50%,0)}
+.version{text-align:center;font-size:11px;color:#8a9691;margin-top:30px}
+@media(max-width:430px){main{padding-left:18px;padding-right:18px}.weather-row{gap:6px}.weather{min-height:94px;border-radius:17px;padding:10px 3px}.weather span{font-size:11px}.wicon{width:32px;height:32px}.topbar{padding-left:17px;padding-right:17px}.icon-btn{font-size:12px;padding:0 11px}.icon-btn span{display:inline}.hero-sky{height:150px}.sky-orb{width:105px;height:105px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body data-weather="okay">
+<div class="ambient" aria-hidden="true"></div>
+<div class="shell" id="shell">
+<header class="topbar">
+  <div class="brand"><span class="mark" aria-hidden="true"></span><span>Cuaca Jiwa</span></div>
+  <div class="top-actions">
+    <button class="icon-btn" id="historyBtn" type="button"><span data-i18n="myWeather">Cuacaku</span> <span aria-hidden="true">↗</span></button>
+    <button class="lang-btn" id="langBtn" type="button">EN</button>
+  </div>
+</header>
+<div class="progress-wrap" id="progressWrap"><div class="progress" id="progress"></div></div>
+<main>
+<section class="screen active" id="home">
+  <div class="eyebrow" data-i18n="today">Hari ini</div>
+  <h1 data-i18n="homeTitle">Bagaimana cuaca jiwamu?</h1>
+  <p class="lede" data-i18n="homeSub">Tidak perlu tepat. Pilih yang paling mendekati keadaanmu sekarang.</p>
+  <div class="hero-sky" aria-hidden="true"><div class="sky-orb"></div></div>
+  <div class="weather-row" id="weatherRow"></div>
+  <button class="quick-help" id="quickHelp" type="button"><span><strong data-i18n="needNow">Aku butuh bantuan sekarang</strong><small data-i18n="skipCheckin">Lewati check-in dan langsung bantu aku</small></span><span class="arrow">→</span></button>
+  <p class="micro" style="margin-top:14px" data-i18n="homePrivacy">Check-in tersimpan hanya di browser ini. Tulisan pribadi tidak disimpan.</p>
+</section>
+
+<section class="screen" id="feelings">
+  <button class="back" type="button" data-back="home">← <span data-i18n="back">Kembali</span></button>
+  <div class="journey" id="journeyFeel"></div>
+  <div class="eyebrow" data-i18n="notice">Kenali</div>
+  <h2 id="feelTitle"></h2>
+  <p class="lede" data-i18n="feelSub">Pilih hingga tiga. Yang bercampur juga boleh.</p>
+  <div class="chips" id="feelChips"></div>
+  <div class="sticky-action"><button class="primary" id="feelNext" disabled data-i18n="continue">Lanjut</button></div>
+</section>
+
+<section class="screen" id="positiveFactor">
+  <button class="back" type="button" data-back="feelings">← <span data-i18n="back">Kembali</span></button>
+  <div class="journey" id="journeyPositive"></div>
+  <div class="eyebrow" data-i18n="learn">Pelajari</div>
+  <h2 data-i18n="positiveTitle">Apa yang paling membantu hari ini terasa seperti ini?</h2>
+  <p class="lede" data-i18n="positiveSub">Bukan mencari masalah. Kita hanya menyimpan hal yang mungkin penting untukmu.</p>
+  <div class="options" id="factorOptions"></div>
+  <div class="sticky-action">
+    <button class="primary" id="savePositive" disabled data-i18n="saveFinish">Simpan & selesai</button>
+    <button class="text-btn" id="savourFirst" data-i18n="savourFirst">Nikmati 20 detik dulu</button>
+  </div>
+</section>
+
+<section class="screen" id="savour">
+  <button class="back" type="button" data-back="positiveFactor">← <span data-i18n="back">Kembali</span></button>
+  <div class="eyebrow" data-i18n="pause">Jeda sebentar</div>
+  <h2 data-i18n="savourTitle">Biarkan momen baik ini tinggal sedikit lebih lama.</h2>
+  <p class="lede" data-i18n="savourSub">Tidak perlu menganalisis. Perhatikan satu hal yang terasa menyenangkan sekarang.</p>
+  <div class="savour"><div><div class="savour-orb"></div><p class="timer" id="savourTimer">20</p></div></div>
+  <button class="primary" id="savourDone" data-i18n="saveReturn">Simpan & kembali ke hariku</button>
+</section>
+
+<section class="screen" id="context">
+  <button class="back" type="button" data-back="feelings">← <span data-i18n="back">Kembali</span></button>
+  <div class="journey" id="journeyContext"></div>
+  <div class="eyebrow" data-i18n="closer">Lihat sedikit lebih dekat</div>
+  <h2 data-i18n="contextTitle">Apa yang paling memengaruhi keadaanmu sekarang?</h2>
+  <p class="lede" data-i18n="contextSub">Satu pilihan cukup. “Belum tahu” juga jawaban yang valid.</p>
+  <div class="options" id="contextOptions"></div>
+  <div class="sticky-action"><button class="primary" id="contextNext" disabled data-i18n="continue">Lanjut</button></div>
+</section>
+
+<section class="screen" id="need">
+  <button class="back" type="button" data-back="context">← <span data-i18n="back">Kembali</span></button>
+  <div class="journey" id="journeyNeed"></div>
+  <div class="eyebrow" data-i18n="whatNow">Untuk sekarang</div>
+  <h2 data-i18n="needTitle">Apa yang paling berguna buatmu sekarang?</h2>
+  <p class="lede" data-i18n="needSub">Pilih hasil yang kamu butuhkan — bukan apa yang “seharusnya” kamu lakukan.</p>
+  <div class="options" id="needOptions"></div>
+</section>
+
+<section class="screen" id="quickRoute">
+  <button class="back" type="button" data-back="home">← <span data-i18n="back">Kembali</span></button>
+  <div class="eyebrow" data-i18n="helpNow">Bantuan sekarang</div>
+  <h2 data-i18n="quickTitle">Apa yang paling terasa mendesak?</h2>
+  <p class="lede" data-i18n="quickSub">Tidak perlu menjelaskan semuanya dulu.</p>
+  <div class="options" id="quickOptions"></div>
+  <div class="notice" data-i18n="crisisSmall">Jika kamu dalam bahaya langsung atau mungkin menyakiti diri/orang lain, jangan mengandalkan aplikasi ini. Hubungi bantuan darurat atau orang yang bisa hadir bersamamu.</div>
+</section>
+
+<section class="screen" id="intervention">
+  <button class="back" type="button" id="interventionBack">← <span data-i18n="back">Kembali</span></button>
+  <div class="journey" id="journeyIntervention"></div>
+  <div id="interventionContent"></div>
+</section>
+
+<section class="screen" id="clarity">
+  <div class="eyebrow" data-i18n="checkEffect">Cek sebentar</div>
+  <h2 id="clarityTitle" data-i18n="clarityTitle">Apakah ini membantu sedikit?</h2>
+  <p class="lede" data-i18n="claritySub">Tidak harus merasa “baik”. Kita hanya mengecek apakah langkah tadi berguna.</p>
+  <div class="outcome-grid" id="outcomeGrid"></div>
+</section>
+
+<section class="screen" id="finish">
+  <div class="finish-center">
+    <div class="finish-symbol" aria-hidden="true"></div>
+    <div class="eyebrow" data-i18n="enough">Cukup untuk sekarang</div>
+    <h2 id="finishTitle">Kembali ke harimu.</h2>
+    <p class="lede" id="finishSub"></p>
+    <div style="width:min(100%,430px);margin-top:28px"><button class="primary" id="finishHome" data-i18n="done">Selesai</button><button class="text-btn" id="finishHistory" data-i18n="seeMyWeather">Lihat Cuacaku</button></div>
+  </div>
+</section>
+
+<section class="screen" id="history">
+  <button class="back" type="button" data-back="home">← <span data-i18n="back">Kembali</span></button>
+  <div class="eyebrow" data-i18n="patterns">Pola, bukan penilaian</div>
+  <h2 data-i18n="historyTitle">Cuacaku</h2>
+  <p class="lede" data-i18n="historySub">Sedikit demi sedikit, check-in membentuk gambaran tentang apa yang sering muncul dan apa yang membantu.</p>
+  <div class="history-strip" id="historyStrip"></div>
+  <div class="result-card" id="historyInsight"></div>
+  <div class="history-list" id="historyList"></div>
+  <button class="text-btn" id="clearHistory" data-i18n="clearHistory">Hapus riwayat di perangkat ini</button>
+</section>
+
+<section class="screen" id="help">
+  <button class="back" type="button" data-back="home">← <span data-i18n="back">Kembali</span></button>
+  <div class="eyebrow" data-i18n="safety">Bantuan & keselamatan</div>
+  <h2 data-i18n="helpTitle">Cuaca Jiwa bukan layanan darurat atau diagnosis.</h2>
+  <p class="lede" data-i18n="helpSub">Kalau kamu membutuhkan bantuan langsung, hubungi layanan yang bisa merespons secara nyata.</p>
+  <a class="resource" href="https://healing119.id" target="_blank" rel="noopener"><strong>Healing119</strong><span>healing119.id</span></a>
+  <a class="resource" href="tel:119"><strong>PSC 119</strong><span data-i18n="callEmergency">Hubungi 119 untuk bantuan darurat di Indonesia.</span></a>
+  <div class="notice" data-i18n="trustedPerson">Jika memungkinkan, beri tahu seseorang yang kamu percaya dan jangan hadapi situasi berbahaya sendirian.</div>
+</section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lang='id', current='home', previous='home', quickMode=false, breathTimer=null, savourTicker=null;
+const blank=()=>({weather:null,feelings:[],factor:null,context:null,need:null,clarity:null,quickType:null});
+let state=blank();
+const T={
+  id:{today:'Hari ini',homeTitle:'Bagaimana cuaca jiwamu?',homeSub:'Tidak perlu tepat. Pilih yang paling mendekati keadaanmu sekarang.',needNow:'Aku butuh bantuan sekarang',skipCheckin:'Lewati check-in dan langsung bantu aku',homePrivacy:'Check-in tersimpan hanya di browser ini. Tulisan pribadi tidak disimpan.',myWeather:'Cuacaku',back:'Kembali',notice:'Kenali',feelSub:'Pilih hingga tiga. Yang bercampur juga boleh.',continue:'Lanjut',learn:'Pelajari',positiveTitle:'Apa yang paling membantu hari ini terasa seperti ini?',positiveSub:'Bukan mencari masalah. Kita hanya menyimpan hal yang mungkin penting untukmu.',saveFinish:'Simpan & selesai',savourFirst:'Nikmati 20 detik dulu',pause:'Jeda sebentar',savourTitle:'Biarkan momen baik ini tinggal sedikit lebih lama.',savourSub:'Tidak perlu menganalisis. Perhatikan satu hal yang terasa menyenangkan sekarang.',saveReturn:'Simpan & kembali ke hariku',closer:'Lihat sedikit lebih dekat',contextTitle:'Apa yang paling memengaruhi keadaanmu sekarang?',contextSub:'Satu pilihan cukup. “Belum tahu” juga jawaban yang valid.',whatNow:'Untuk sekarang',needTitle:'Apa yang paling berguna buatmu sekarang?',needSub:'Pilih hasil yang kamu butuhkan — bukan apa yang “seharusnya” kamu lakukan.',helpNow:'Bantuan sekarang',quickTitle:'Apa yang paling terasa mendesak?',quickSub:'Tidak perlu menjelaskan semuanya dulu.',crisisSmall:'Jika kamu dalam bahaya langsung atau mungkin menyakiti diri/orang lain, jangan mengandalkan aplikasi ini. Hubungi bantuan darurat atau orang yang bisa hadir bersamamu.',checkEffect:'Cek sebentar',clarityTitle:'Apakah ini membantu sedikit?',claritySub:'Tidak harus merasa “baik”. Kita hanya mengecek apakah langkah tadi berguna.',enough:'Cukup untuk sekarang',done:'Selesai',seeMyWeather:'Lihat Cuacaku',patterns:'Pola, bukan penilaian',historyTitle:'Cuacaku',historySub:'Sedikit demi sedikit, check-in membentuk gambaran tentang apa yang sering muncul dan apa yang membantu.',clearHistory:'Hapus riwayat di perangkat ini',safety:'Bantuan & keselamatan',helpTitle:'Cuaca Jiwa bukan layanan darurat atau diagnosis.',helpSub:'Kalau kamu membutuhkan bantuan langsung, hubungi layanan yang bisa merespons secara nyata.',callEmergency:'Hubungi 119 untuk bantuan darurat di Indonesia.',trustedPerson:'Jika memungkinkan, beri tahu seseorang yang kamu percaya dan jangan hadapi situasi berbahaya sendirian.',helped:'Ya, membantu',little:'Sedikit',notYet:'Belum',worse:'Malah lebih berat'},
+  en:{today:'Today',homeTitle:'What is your inner weather like?',homeSub:'It does not have to be exact. Choose what feels closest right now.',needNow:'I need help right now',skipCheckin:'Skip the check-in and help me now',homePrivacy:'Check-ins stay in this browser. Private writing is not saved.',myWeather:'My weather',back:'Back',notice:'Notice',feelSub:'Choose up to three. Mixed feelings are welcome.',continue:'Continue',learn:'Learn',positiveTitle:'What helped today feel this way?',positiveSub:'We are not looking for a problem. We are simply saving what may matter to you.',saveFinish:'Save & finish',savourFirst:'Savour 20 seconds first',pause:'A short pause',savourTitle:'Let this good moment stay a little longer.',savourSub:'No need to analyse it. Notice one thing that feels good right now.',saveReturn:'Save & return to my day',closer:'Look a little closer',contextTitle:'What is influencing how you feel right now?',contextSub:'One choice is enough. “Not sure yet” is valid too.',whatNow:'For now',needTitle:'What would be most useful right now?',needSub:'Choose the outcome you need — not what you think you “should” do.',helpNow:'Help right now',quickTitle:'What feels most urgent?',quickSub:'You do not need to explain everything first.',crisisSmall:'If you are in immediate danger or may hurt yourself or someone else, do not rely on this app. Contact emergency help or someone who can be physically present.',checkEffect:'Quick check',clarityTitle:'Did that help at all?',claritySub:'You do not need to feel “good”. We are only checking whether the step was useful.',enough:'Enough for now',done:'Done',seeMyWeather:'See My Weather',patterns:'Patterns, not judgement',historyTitle:'My Weather',historySub:'Over time, check-ins can show what tends to appear and what seems to help.',clearHistory:'Delete history on this device',safety:'Help & safety',helpTitle:'Cuaca Jiwa is not emergency care or a diagnosis.',helpSub:'If you need immediate help, contact a service that can respond in the real world.',callEmergency:'Call 119 for emergency help in Indonesia.',trustedPerson:'If possible, tell someone you trust and do not face a dangerous situation alone.',helped:'Yes, it helped',little:'A little',notYet:'Not yet',worse:'I feel worse'}
+};
+const W={
+ sunny:['Cerah','Sunny'],okay:['Lumayan','Okay'],cloudy:['Mendung','Cloudy'],rainy:['Hujan','Rainy'],stormy:['Badai','Stormy']
+};
+const FEEL={
+ sunny:[['happy','Senang','Happy'],['light','Ringan','Light'],['calm','Tenang','Calm'],['grateful','Bersyukur','Grateful'],['excited','Bersemangat','Energised'],['connected','Dekat dengan orang lain','Connected'],['relieved','Lega','Relieved'],['mixed','Campur aduk','Mixed']],
+ okay:[['neutral','Biasa saja','Neutral'],['stable','Stabil','Steady'],['calm','Tenang','Calm'],['tired','Lelah','Tired'],['restless','Sedikit gelisah','A little restless'],['mixed','Campur aduk','Mixed'],['unsure','Belum tahu','Not sure']],
+ cloudy:[['restless','Gelisah','Restless'],['tired','Lelah','Tired'],['lonely','Sepi','Lonely'],['flat','Hampa','Flat'],['sad','Sedih','Sad'],['irritated','Kesal','Irritated'],['mixed','Campur aduk','Mixed'],['unsure','Belum tahu','Not sure']],
+ rainy:[['anxious','Cemas','Anxious'],['sad','Sedih','Sad'],['lonely','Kesepian','Lonely'],['hurt','Terluka','Hurt'],['tired','Sangat lelah','Very tired'],['overwhelmed','Kewalahan','Overwhelmed'],['angry','Marah','Angry'],['unsure','Belum tahu','Not sure']],
+ stormy:[['panic','Panik','Panicked'],['overwhelmed','Kewalahan','Overwhelmed'],['angry','Sangat marah','Very angry'],['hurt','Sangat terluka','Deeply hurt'],['scared','Takut','Scared'],['numb','Mati rasa','Numb'],['chaotic','Semuanya bercampur','Everything at once'],['unsure','Belum tahu','Not sure']]
+};
+const FACTORS=[['people','Orang yang berarti','People I care about','Kedekatan, percakapan, atau merasa didukung.','Connection, conversation, or feeling supported.'],['rest','Istirahat & tubuh','Rest & body','Tidur, makan, bergerak, atau tubuh yang terasa lebih baik.','Sleep, food, movement, or feeling better physically.'],['progress','Kemajuan kecil','A small win','Ada sesuatu yang bergerak maju atau selesai.','Something moved forward or got done.'],['space','Waktu untuk diriku','Time for myself','Ruang, hobi, atau waktu tanpa tuntutan.','Space, hobbies, or time without demands.'],['meaning','Makna / iman','Meaning / faith','Sesuatu terasa bermakna, terarah, atau menguatkan.','Something felt meaningful, grounding, or strengthening.'],['environment','Lingkungan','Environment','Tempat, cuaca, musik, makanan, atau suasana membantu.','A place, weather, music, food, or atmosphere helped.'],['none','Tidak ada alasan khusus','Nothing in particular','Hari ini memang terasa baik.','Today simply feels good.'],['unsure','Belum tahu','Not sure yet','Tidak perlu dipaksa.','No need to force an answer.']];
+const CONTEXT=[['self','Diriku','Myself','Pikiran, ekspektasi, atau cara melihat diri sendiri.','Thoughts, expectations, or how I see myself.'],['relationship','Relasi','Relationships','Pasangan, teman, kedekatan, konflik, atau kehilangan.','Partner, friends, closeness, conflict, or loss.'],['family','Keluarga','Family','Hal yang terjadi di rumah atau dengan keluarga.','Things happening at home or with family.'],['work','Pekerjaan / studi','Work / study','Beban, deadline, performa, atau arah karier.','Workload, deadlines, performance, or direction.'],['money','Keuangan','Money','Pengeluaran, pemasukan, utang, atau rasa tidak aman.','Expenses, income, debt, or insecurity.'],['future','Masa depan','The future','Ketidakpastian, keputusan, atau takut salah langkah.','Uncertainty, decisions, or fear of getting it wrong.'],['body','Kesehatan & tubuh','Health & body','Energi, sakit, tidur, hormon, atau kondisi fisik.','Energy, illness, sleep, hormones, or physical state.'],['change','Perubahan hidup','Life change','Pindah, kehilangan, awal baru, atau masa transisi.','Moving, loss, new beginnings, or transition.'],['none','Tidak ada alasan khusus','Nothing specific','Tidak semua perasaan punya alasan yang jelas.','Not every feeling has a clear reason.'],['unsure','Belum tahu','Not sure yet','Kita tidak perlu memaksakan penjelasan.','We do not have to force an explanation.']];
+const NEEDS=[['calm','Aku ingin lebih tenang','I want to feel calmer','Bantu tubuh dan pikiran menurunkan intensitas dulu.','Help my body and mind lower the intensity first.'],['clarify','Aku ingin pikiranku lebih jelas','I want a clearer mind','Pisahkan fakta, kekhawatiran, dan hal yang masih bisa dikendalikan.','Separate facts, worries, and what is still in my control.'],['step','Aku perlu langkah berikutnya','I need a next step','Kecilkan masalah menjadi satu tindakan yang realistis.','Turn the situation into one realistic next action.'],['connect','Aku ingin terhubung dengan seseorang','I want to connect with someone','Bantu aku mendekati orang yang aman tanpa harus menjelaskan semuanya sempurna.','Help me reach someone safe without needing perfect words.'],['record','Aku cuma ingin mencatat','I just want to record this','Simpan check-in tanpa memaksakan intervensi.','Save the check-in without forcing an intervention.']];
+const QUICK=[['calm','Tubuhku tegang / panik','My body feels tense / panicky','Langsung bantu aku menurunkan intensitas.','Help me bring the intensity down now.'],['clarify','Pikiranku terlalu penuh','My mind is too full','Bantu aku memilah yang nyata dan yang ditakuti.','Help me sort what is real from what I fear.'],['anger','Aku sangat marah','I am very angry','Bantu aku berhenti sebelum bereaksi.','Help me pause before I react.'],['sad','Aku sangat sedih','I feel very sad','Bantu aku melewati beberapa menit ini.','Help me get through the next few minutes.'],['connect','Aku butuh seseorang','I need someone','Bantu aku menghubungi orang yang aman.','Help me reach someone safe.']];
+const tr=(a,b)=>lang==='id'?a:b;
+function weatherSVG(k){
+ const s={sunny:'<circle cx="20" cy="20" r="7" fill="#e4c35e"/><g stroke="#b99d48" stroke-width="1.8" stroke-linecap="round"><path d="M20 5v4M20 31v4M5 20h4M31 20h4M9.4 9.4l2.8 2.8M27.8 27.8l2.8 2.8M30.6 9.4l-2.8 2.8M12.2 27.8l-2.8 2.8"/></g>',okay:'<circle cx="16" cy="15" r="6" fill="#e4c96d"/><path d="M11 27h19a6 6 0 0 0 0-12 9 9 0 0 0-16.5 3.7A5.5 5.5 0 0 0 11 27Z" fill="#c8d8d1"/>',cloudy:'<path d="M9 28h22a7 7 0 0 0 .3-14 10 10 0 0 0-18.5 4.1A5.7 5.7 0 0 0 9 28Z" fill="#aebdb8"/>',rainy:'<path d="M9 23h22a7 7 0 0 0 .3-14 10 10 0 0 0-18.5 4.1A5.7 5.7 0 0 0 9 23Z" fill="#9eb5b9"/><g stroke="#668a92" stroke-width="2" stroke-linecap="round"><path d="M14 28l-2 5M22 28l-2 5M30 28l-2 5"/></g>',stormy:'<path d="M9 22h22a7 7 0 0 0 .3-14 10 10 0 0 0-18.5 4.1A5.7 5.7 0 0 0 9 22Z" fill="#879ba2"/><path d="M22 23l-4 7h4l-2 6 8-10h-5l2-3z" fill="#d2ae56"/>'}[k];
+ return `<svg class="wicon" viewBox="0 0 40 40" aria-hidden="true">${s}</svg>`
+}
+function labelWeather(k){return W[k]?tr(W[k][0],W[k][1]):''}
+function optionButton(item,selected,onClick){const b=document.createElement('button');b.type='button';b.className='option'+(selected?' selected':'');b.innerHTML=`<span><strong>${tr(item[1],item[2])}</strong>${item[3]?`<small>${tr(item[3],item[4])}</small>`:''}</span><span class="checkmark">${selected?'✓':''}</span>`;b.onclick=onClick;return b}
+function chipButton(item,selected,onClick){const b=document.createElement('button');b.type='button';b.className='chip'+(selected?' selected':'');b.textContent=tr(item[1],item[2]);b.onclick=onClick;return b}
+function applyI18n(){document.documentElement.lang=lang;document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(T[lang][k])el.textContent=T[lang][k]});$('langBtn').textContent=lang==='id'?'EN':'ID';renderAllCurrent()}
+function animateIn(el,dir=1){if(reduced)return;el.animate([{opacity:.15,transform:`translateY(${dir*12}px)`},{opacity:1,transform:'translateY(0)'}],{duration:360,easing:'cubic-bezier(.22,.8,.22,1)'})}
+function show(id,opts={}){if(current===id)return;previous=current;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));const el=$(id);el.classList.add('active');current=id;window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});animateIn(el,1);updateProgress();renderAllCurrent()}
+function updateProgress(){const flow=['feelings','context','need','intervention','clarity'];const i=flow.indexOf(current);$('progressWrap').classList.toggle('show',i>=0);$('progress').style.width=i<0?'0%':`${((i+1)/flow.length)*100}%`}
+function renderHome(){const row=$('weatherRow');row.replaceChildren();Object.keys(W).forEach(k=>{const b=document.createElement('button');b.type='button';b.className='weather'+(state.weather===k?' selected':'');b.dataset.w=k;b.innerHTML=weatherSVG(k)+`<span>${labelWeather(k)}</span>`;b.onclick=()=>chooseWeather(k);row.append(b)})}
+function chooseWeather(k){state=blank();state.weather=k;quickMode=false;document.body.dataset.weather=k;renderHome();setTimeout(()=>show('feelings'),reduced?0:220)}
+function feelTitle(){return state.weather==='sunny'?tr('Apa yang terasa baik hari ini?','What feels good today?'):state.weather==='okay'?tr('Yang paling dekat dengan keadaanmu?','What feels closest right now?'):state.weather==='cloudy'?tr('Apa yang paling terasa?','What stands out most?'):state.weather==='rainy'?tr('Kita pelan-pelan. Apa yang paling terasa?','Slowly. What feels strongest?'):tr('Tidak perlu merapikan semuanya. Apa yang paling terasa?','You do not need to sort everything. What feels strongest?')}
+function renderFeelings(){$('feelTitle').textContent=feelTitle();crumbs($('journeyFeel'));const box=$('feelChips');box.replaceChildren();(FEEL[state.weather]||[]).forEach(f=>box.append(chipButton(f,state.feelings.includes(f[0]),()=>toggleFeeling(f[0]))));$('feelNext').disabled=!state.feelings.length}
+function toggleFeeling(k){state.feelings=state.feelings.includes(k)?state.feelings.filter(x=>x!==k):(state.feelings.length<3?[...state.feelings,k]:[...state.feelings.slice(1),k]);renderFeelings()}
+function hasDifficultFeeling(){return state.feelings.some(x=>['restless','tired','lonely','flat','sad','irritated','anxious','hurt','overwhelmed','angry','panic','scared','numb','chaotic'].includes(x))}
+function isPositiveState(){const positive=['happy','light','calm','grateful','excited','connected','relieved'];return state.weather==='sunny'&&state.feelings.length>0&&state.feelings.every(x=>positive.includes(x))}
+function nextFromFeeling(){if(isPositiveState())show('positiveFactor');else show('context')}
+function renderFactors(){crumbs($('journeyPositive'));const box=$('factorOptions');box.replaceChildren();FACTORS.forEach(f=>box.append(optionButton(f,state.factor===f[0],()=>{state.factor=f[0];renderFactors()})));$('savePositive').disabled=!state.factor}
+function renderContext(){crumbs($('journeyContext'));const box=$('contextOptions');box.replaceChildren();CONTEXT.forEach(c=>box.append(optionButton(c,state.context===c[0],()=>{state.context=c[0];renderContext()})));$('contextNext').disabled=!state.context}
+function renderNeeds(){crumbs($('journeyNeed'));const box=$('needOptions');box.replaceChildren();NEEDS.forEach(n=>box.append(optionButton(n,state.need===n[0],()=>chooseNeed(n[0]))));}
+function chooseNeed(k){state.need=k;if(k==='record'){state.clarity=null;finishAndSave();return}show('intervention')}
+function renderQuick(){const box=$('quickOptions');box.replaceChildren();QUICK.forEach(q=>box.append(optionButton(q,false,()=>{quickMode=true;state=blank();state.quickType=q[0];state.need=q[0]==='anger'||q[0]==='sad'?'calm':q[0];show('intervention')})))}
+function interventionTitle(type){return ({calm:tr('Turunkan intensitas dulu.','Lower the intensity first.'),clarify:tr('Pisahkan yang nyata dari yang ditakuti.','Separate what is real from what you fear.'),step:tr('Cari satu langkah yang cukup kecil.','Find one step small enough.'),connect:tr('Kamu tidak harus menjelaskannya sempurna.','You do not need perfect words.')})[type]||''}
+function renderIntervention(){crumbs($('journeyIntervention'));$('interventionBack').onclick=()=>show(quickMode?'quickRoute':'need');const box=$('interventionContent');box.replaceChildren();const need=state.need;
+ if(quickMode&&state.quickType==='anger'){box.innerHTML=`<div class="eyebrow">${tr('Jeda reaksi','Pause the reaction')}</div><h2>${tr('Jangan selesaikan konflik saat intensitasnya sedang tinggi.','Do not solve the conflict while the intensity is high.')}</h2><div class="intervention-shell"><h3>${tr('Untuk 90 detik','For 90 seconds')}</h3><p class="lede">${tr('Jauhkan tangan dari chat, telepon, atau keputusan besar. Letakkan kaki di lantai. Buang napas lebih panjang dari tarikan napas.','Step away from messages, calls, or big decisions. Put both feet on the floor. Make each exhale longer than the inhale.')}</p><button class="primary" style="margin-top:22px" onclick="startBreath(60)">${tr('Mulai 60 detik','Start 60 seconds')}</button></div>`;return}
+ if(quickMode&&state.quickType==='sad'){box.innerHTML=`<div class="eyebrow">${tr('Lewati beberapa menit ini','Get through the next few minutes')}</div><h2>${tr('Kita tidak perlu memperbaiki semuanya sekarang.','We do not need to fix everything right now.')}</h2><div class="intervention-shell"><h3>${tr('Kembali ke hal yang nyata','Return to what is real')}</h3><p class="lede">${tr('Cari satu tempat tubuhmu ditopang: lantai, kursi, atau tempat tidur. Sebutkan tiga hal yang bisa kamu lihat. Lalu pilih satu orang yang aman untuk dihubungi jika kamu membutuhkannya.','Notice one place your body is supported: the floor, a chair, or a bed. Name three things you can see. Then think of one safe person you could contact if you need them.')}</p><button class="primary" style="margin-top:22px" onclick="show('clarity')">${tr('Sudah kulakukan','I did that')}</button></div>`;return}
+ if(need==='calm'){renderCalm(box);return}
+ if(need==='clarify'){renderClarify(box);return}
+ if(need==='step'){renderStep(box);return}
+ if(need==='connect'){renderConnect(box);return}
+}
+function renderCalm(box){box.innerHTML=`<div class="regulation"><div class="eyebrow">${tr('Regulasi 60 detik','60-second regulation')}</div><h2>${interventionTitle('calm')}</h2><p class="lede">${tr('Tarik 4 detik · tahan 2 · buang 6. Jangan paksa napas lebih dalam dari yang nyaman.','Inhale 4 · hold 2 · exhale 6. Do not force a deeper breath than feels comfortable.')}</p><div class="intervention-shell"><div class="reg-orb" id="regOrb"><span id="breathWord">${tr('Siap','Ready')}</span></div><div class="timer" id="breathTimer">60</div><button class="secondary" id="breathStart">${tr('Mulai','Start')}</button></div></div>`;$('breathStart').onclick=()=>startBreath(60)}
+function startBreath(seconds){clearInterval(breathTimer);document.body.classList.add('quiet-nav');if(current!=='intervention')show('intervention');if(!$('regOrb')){const box=$('interventionContent');renderCalm(box)};let left=seconds,phase=0,phaseLeft=0;const phases=[['inhale',4,tr('Tarik','Inhale')],['hold',2,tr('Tahan','Hold')],['exhale',6,tr('Buang','Exhale')]];const tick=()=>{if(left<=0){clearInterval(breathTimer);document.body.classList.remove('quiet-nav');$('breathWord').textContent=tr('Selesai','Done');$('regOrb').className='reg-orb';setTimeout(()=>show('clarity'),650);return}if(phaseLeft<=0){const p=phases[phase];$('regOrb').className='reg-orb '+p[0];$('breathWord').textContent=p[2];phaseLeft=p[1];phase=(phase+1)%phases.length}$('breathTimer').textContent=left;left--;phaseLeft--};tick();breathTimer=setInterval(tick,1000);$('breathStart').disabled=true;$('breathStart').textContent=tr('Berjalan…','In progress…')}
+function renderClarify(box){box.innerHTML=`<div class="eyebrow">${tr('Kejelasan','Clarity')}</div><h2>${interventionTitle('clarify')}</h2><p class="lede">${tr('Tulis sesingkat mungkin. Tulisan ini tidak disimpan ketika sesi selesai.','Keep it short. This writing is not saved when the session ends.')}</p><div class="triad"><div class="field"><label>${tr('Yang aku tahu benar terjadi','What I know actually happened')}</label><textarea id="factText" maxlength="300" placeholder="${tr('Fakta yang bisa kamu pegang…','The facts you can hold onto…')}"></textarea></div><div class="field"><label>${tr('Yang aku takutkan mungkin terjadi','What I fear might happen')}</label><textarea id="fearText" maxlength="300" placeholder="${tr('Kekhawatiran, prediksi, asumsi…','Worries, predictions, assumptions…')}"></textarea></div><div class="field"><label>${tr('Yang masih bisa kulakukan sekarang','What I can still do now')}</label><textarea id="controlText" maxlength="300" placeholder="${tr('Satu hal kecil dalam kendalimu…','One small thing still in your control…')}"></textarea></div></div><button class="primary" style="margin-top:20px" id="clarifyDone">${tr('Cukup jelas untuk sekarang','Clear enough for now')}</button>`;$('clarifyDone').onclick=()=>show('clarity')}
+function renderStep(box){box.innerHTML=`<div class="eyebrow">${tr('Satu langkah','One step')}</div><h2>${interventionTitle('step')}</h2><p class="lede">${tr('Langkah berikutnya harus cukup kecil untuk dilakukan — bukan cukup besar untuk menyelesaikan semuanya.','The next step only needs to be small enough to do — not big enough to solve everything.')}</p><div class="intervention-shell"><div class="field"><label>${tr('Apa satu tindakan 5–15 menit yang bisa kamu lakukan?','What is one 5–15 minute action you can take?')}</label><input id="stepText" maxlength="160" placeholder="${tr('Contoh: kirim satu email, mandi, buka dokumen…','Example: send one email, shower, open the document…')}"></div><p class="micro" style="margin-top:12px">${tr('Tulisan ini tidak disimpan. Tujuannya hanya membuat langkahmu terlihat.','This text is not saved. Its purpose is simply to make the next step visible.')}</p><button class="primary" style="margin-top:20px" id="stepDone">${tr('Itu langkahku','That is my next step')}</button></div>`;$('stepDone').onclick=()=>show('clarity')}
+function renderConnect(box){box.innerHTML=`<div class="eyebrow">${tr('Terhubung','Connection')}</div><h2>${interventionTitle('connect')}</h2><p class="lede">${tr('Pilih seseorang yang relatif aman. Kamu boleh hanya bilang bahwa kamu butuh ditemani sebentar.','Choose someone who feels relatively safe. You can simply say you need some company for a moment.')}</p><div class="connection-card"><h3>${tr('Pesan sederhana','A simple message')}</h3><div class="message-preview" id="messagePreview">${tr('“Hei, aku lagi agak penuh. Kamu ada waktu sebentar buat ngobrol atau nemenin aku?”','“Hey, I’m feeling a bit overwhelmed. Do you have a moment to talk or just keep me company?”')}</div><button class="copy-btn" id="copyMsg">${tr('Salin pesan','Copy message')}</button></div><button class="primary" style="margin-top:20px" id="connectDone">${tr('Aku tahu siapa yang bisa kuhubungi','I know who I can reach')}</button>`;$('copyMsg').onclick=copyMessage;$('connectDone').onclick=()=>show('clarity')}
+async function copyMessage(){try{await navigator.clipboard.writeText($('messagePreview').textContent.replace(/[“”]/g,''));toast(tr('Pesan disalin','Message copied'))}catch(e){toast(tr('Tekan lama untuk menyalin pesan','Press and hold to copy the message'))}}
+function renderClarity(){const grid=$('outcomeGrid');grid.replaceChildren();[['helped',T[lang].helped],['little',T[lang].little],['notYet',T[lang].notYet],['worse',T[lang].worse]].forEach(o=>{const b=document.createElement('button');b.type='button';b.textContent=o[1];b.onclick=()=>chooseOutcome(o[0]);grid.append(b)})}
+function chooseOutcome(k){state.clarity=k;if(k==='worse'){quickMode?renderWorseQuick():renderWorse();return}if(quickMode){showFinish(k);return}finishAndSave()}
+function renderWorse(){const grid=$('outcomeGrid');grid.replaceChildren();$('clarityTitle').textContent=tr('Kalau terasa lebih berat, jangan dipaksa.','If it feels heavier, do not force it.');const p=document.createElement('div');p.className='result-card';p.innerHTML=`<strong>${tr('Kita bisa berhenti di sini.','We can stop here.')}</strong><p>${tr('Coba kebutuhan yang berbeda, hubungi seseorang yang aman, atau cari bantuan langsung jika kamu merasa tidak aman.','Try a different kind of support, reach someone safe, or seek direct help if you feel unsafe.')}</p>`;grid.append(p);[['retry',tr('Coba cara lain','Try a different approach')],['person',tr('Aku butuh seseorang','I need someone')],['stop',tr('Berhenti untuk sekarang','Stop for now')]].forEach(x=>{const b=document.createElement('button');b.textContent=x[1];b.onclick=()=>x[0]==='retry'?show('need'):x[0]==='person'?(state.need='connect',show('intervention')):finishAndSave();grid.append(b)})}
+function renderWorseQuick(){const grid=$('outcomeGrid');grid.replaceChildren();$('clarityTitle').textContent=tr('Kalau terasa lebih berat, jangan hadapi sendirian.','If it feels worse, do not face it alone.');[['person',tr('Bantu aku menghubungi seseorang','Help me reach someone')],['help',tr('Lihat bantuan langsung','See direct help')],['stop',tr('Berhenti untuk sekarang','Stop for now')]].forEach(x=>{const b=document.createElement('button');b.textContent=x[1];b.onclick=()=>x[0]==='person'?(state.need='connect',state.quickType='connect',show('intervention')):x[0]==='help'?show('help'):showFinish('worse');grid.append(b)})}
+function saveSession(){if(!state.weather)return;const rec={id:'cj4_'+Date.now().toString(36),date:new Date().toISOString(),weather:state.weather,feelings:[...state.feelings],factor:state.factor,context:state.context,need:state.need,clarity:state.clarity,version:4};const all=sessions();all.unshift(rec);try{localStorage.setItem('cuacaJiwaSessionsV4',JSON.stringify(all.slice(0,100)))}catch(e){}}
+function sessions(){try{return JSON.parse(localStorage.getItem('cuacaJiwaSessionsV4')||'[]')}catch(e){return[]}}
+function finishAndSave(){saveSession();showFinish(state.clarity)}
+function showFinish(outcome){document.body.classList.remove('quiet-nav');clearInterval(breathTimer);if(quickMode){$('finishTitle').textContent=outcome==='worse'?tr('Cukup untuk sekarang.','Enough for now.'):tr('Kamu sudah membuat sedikit ruang.','You made a little room.');$('finishSub').textContent=tr('Tidak perlu menyelesaikan semuanya sekarang. Kembali ke hal berikutnya dengan pelan.','You do not need to solve everything now. Return to what comes next gently.')}else if(isPositiveState()){$('finishTitle').textContent=tr('Hari yang baik boleh cukup dinikmati.','A good day can simply be enjoyed.');$('finishSub').textContent=tr('Cuaca Jiwa menyimpan apa yang mungkin ikut membuat hari ini terasa baik.','Cuaca Jiwa saved what may have helped today feel good.')}else{$('finishTitle').textContent=tr('Kembali ke harimu.','Return to your day.');$('finishSub').textContent=state.clarity==='helped'||state.clarity==='little'?tr('Kamu tidak harus menyelesaikan semuanya. Sedikit lebih tenang atau lebih jelas sudah cukup untuk sesi ini.','You do not have to solve everything. A little more calm or clarity is enough for this session.'):tr('Belum terasa berbeda juga tidak apa-apa. Check-in ini tetap boleh berhenti di sini.','It is okay if nothing feels different yet. This check-in can still end here.')}show('finish')}
+function savePositive(){state.need='record';state.clarity='helped';saveSession();showFinish('helped')}
+function startSavour(){show('savour');clearInterval(savourTicker);let n=20;$('savourTimer').textContent=n;savourTicker=setInterval(()=>{n--;$('savourTimer').textContent=n;if(n<=0){clearInterval(savourTicker);$('savourDone').textContent=tr('Simpan & kembali ke hariku','Save & return to my day')}},1000)}
+function crumbs(el){if(!el)return;el.replaceChildren();if(state.weather)el.append(crumb(labelWeather(state.weather)));if(state.feelings.length){const names=state.feelings.map(k=>{const f=(FEEL[state.weather]||[]).find(x=>x[0]===k);return f?tr(f[1],f[2]):k}).join(' · ');el.append(crumb(names))}if(state.context){const c=CONTEXT.find(x=>x[0]===state.context);if(c)el.append(crumb(tr(c[1],c[2])))}if(state.need){const n=NEEDS.find(x=>x[0]===state.need);if(n)el.append(crumb(tr(n[1],n[2])))} }
+function crumb(text){const s=document.createElement('span');s.className='crumb';s.textContent=text;return s}
+function renderHistory(){const data=sessions();const strip=$('historyStrip'),list=$('historyList'),ins=$('historyInsight');strip.replaceChildren();list.replaceChildren();if(!data.length){ins.innerHTML=`<strong>${tr('Belum ada pola.','No patterns yet.')}</strong><p>${tr('Beberapa check-in akan mulai membentuk gambaran — tanpa menilai apakah cuacamu “baik” atau “buruk”.','A few check-ins will start to form a picture — without judging your weather as “good” or “bad”.')}</p>`;return}data.slice(0,12).forEach(r=>{const d=document.createElement('div');d.className='weather-dot';d.innerHTML=weatherSVG(r.weather);strip.append(d)});const counts={};data.forEach(r=>counts[r.weather]=(counts[r.weather]||0)+1);const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];const contexts={};data.filter(r=>r.context).forEach(r=>contexts[r.context]=(contexts[r.context]||0)+1);const tc=Object.entries(contexts).sort((a,b)=>b[1]-a[1])[0];let text=tr(`${data.length} check-in tersimpan. Cuaca yang paling sering muncul sejauh ini: ${labelWeather(top[0])}.`,`${data.length} check-ins saved. Your most common weather so far: ${labelWeather(top[0])}.`);if(tc&&data.length>=5){const c=CONTEXT.find(x=>x[0]===tc[0]);text+=' '+tr(`Konteks yang paling sering kamu pilih: ${c?.[1]||tc[0]}. Ini pola awal, bukan kesimpulan.`,`Your most selected context: ${c?.[2]||tc[0]}. This is an early pattern, not a conclusion.`)}ins.innerHTML=`<strong>${tr('Iklim yang mulai terlihat','Your emerging climate')}</strong><p>${text}</p>`;data.slice(0,8).forEach(r=>{const row=document.createElement('div');row.className='history-item';const date=new Date(r.date).toLocaleDateString(lang==='id'?'id-ID':'en-US',{day:'numeric',month:'short'});row.innerHTML=`<strong>${labelWeather(r.weather)}</strong><span>${date}${r.context?' · '+tr((CONTEXT.find(x=>x[0]===r.context)||[])[1]||'',(CONTEXT.find(x=>x[0]===r.context)||[])[2]||''):''}</span>`;list.append(row)})}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function reset(){state=blank();quickMode=false;document.body.dataset.weather='okay';$('clarityTitle').textContent=T[lang].clarityTitle;show('home');renderHome()}
+function renderAllCurrent(){renderHome();if(current==='feelings')renderFeelings();if(current==='positiveFactor')renderFactors();if(current==='context')renderContext();if(current==='need')renderNeeds();if(current==='quickRoute')renderQuick();if(current==='intervention')renderIntervention();if(current==='clarity')renderClarity();if(current==='history')renderHistory()}
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show(b.dataset.back));
+$('langBtn').onclick=()=>{lang=lang==='id'?'en':'id';applyI18n()};
+$('historyBtn').onclick=()=>show('history');
+$('quickHelp').onclick=()=>{quickMode=true;show('quickRoute')};
+$('feelNext').onclick=nextFromFeeling;
+$('contextNext').onclick=()=>show('need');
+$('savePositive').onclick=savePositive;
+$('savourFirst').onclick=startSavour;
+$('savourDone').onclick=savePositive;
+$('finishHome').onclick=reset;
+$('finishHistory').onclick=()=>show('history');
+$('clearHistory').onclick=()=>{if(confirm(tr('Hapus semua riwayat Cuaca Jiwa di perangkat ini?','Delete all Cuaca Jiwa history on this device?'))){localStorage.removeItem('cuacaJiwaSessionsV4');renderHistory();toast(tr('Riwayat dihapus','History deleted'))}};
+// Long-press brand opens safety/help without adding another persistent navigation item.
+let hold;document.querySelector('.brand').addEventListener('pointerdown',()=>hold=setTimeout(()=>show('help'),800));['pointerup','pointerleave'].forEach(e=>document.querySelector('.brand').addEventListener(e,()=>clearTimeout(hold)));
+applyI18n();renderHome();updateProgress();
+// Basic internal test hook for automated checks.
+window.CuacaJiwaV04={state:()=>({...state}),sessions,chooseWeather,show,version:'0.4'};
+</script>
+</body>
+</html>
